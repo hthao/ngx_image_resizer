@@ -1,0 +1,5 @@
+ngx_addon_name=ngx_http_image_resizer_module
+HTTP_MODULES="$HTTP_MODULES ngx_http_image_resizer_module"
+NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/ngx_http_image_resizer_module.c"
+CORE_LIBS="$CORE_LIBS -lGraphicsMagickWand -lGraphicsMagick -llcms -ltiff -lfreetype -ljasper -ljpeg -lwebp -lpng12 -lz -lm -lpthread"
+
