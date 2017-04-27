@@ -13,22 +13,21 @@
 
 ### usage:
 for example, the source image url is http://www.example.com/data/example.jpg
-```
-/* adjust image quality to be 90% */
+
+> adjust image quality to be 90%
 http://www.example.com/data/example_q90.jpg
 
-/* resize image, width:200 pixel, height:300 pixel */
+> resize image, width:200 pixel, height:300 pixel
 http://www.example.com/data/example_200x300.jpg 
 
-/* convert jpg format to be webp format */
+> convert jpg format to be webp format
 http://www.example.com/data/example.webp 
 
-/* resize image, width:200 pixel, height:300 pixel, and set quality to be 85% */
+> resize image, width:200 pixel, height:300 pixel, and set quality to be 85%
 http://www.example.com/data/example_200x300q85.jpg 
 
-/* resize image, width:200 pixel, height:300 pixel, and set quality to be 85%, and convert the format to be webp */
+> resize image, width:200 pixel, height:300 pixel, and set quality to be 85%, and convert the format to be webp
 http://www.example.com/data/example_200x300q85.webp 
-```
 
 - `_q[0-9]{1,2}`
     - image quality, value range [0, 99].
