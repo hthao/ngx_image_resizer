@@ -115,8 +115,7 @@ ngx_http_image_resizer_handler(
 
 static ngx_int_t 
 ngx_http_image_static_handler(
-        ngx_http_request_t * r,
-        ngx_str_t *path);
+        ngx_http_request_t * r);
 
 
 typedef struct {
@@ -252,7 +251,7 @@ ngx_http_image_handler(
     if (0 != access((char*)path.data, F_OK|R_OK)) {
         return ngx_http_image_resizer_handler(r, &path);
     } else {
-        return ngx_http_image_static_handler(r, &path);
+        return ngx_http_image_static_handler(r);
     }
 
 }
@@ -260,24 +259,43 @@ ngx_http_image_handler(
 /* This is a copy of static content module handler */
 static ngx_int_t
 ngx_http_image_static_handler(
-        ngx_http_request_t *r,
-        ngx_str_t *path)
+        ngx_http_request_t *r)
 {
-    u_char					  *last, *location;
-    size_t					       len;
-    ngx_int_t				   rc;
-    ngx_uint_t				   level;
-    ngx_log_t				  *log;
-    ngx_buf_t				  *b;
-    ngx_chain_t 			   out;
-    ngx_open_file_info_t	   of;
-    ngx_http_core_loc_conf_t  *clcf;
+    u_char										*last, *location;
+    size_t										 root, len;
+    ngx_str_t 								 path;
+    ngx_int_t 								 rc;
+    ngx_uint_t								 level;
+    ngx_log_t 								*log;
+    ngx_buf_t 								*b;
+    ngx_chain_t 							 out;
+    ngx_open_file_info_t			 of;
+    ngx_http_core_loc_conf_t	*clcf;
+
+    if (!(r->method & (NGX_HTTP_GET|NGX_HTTP_HEAD|NGX_HTTP_POST))) {
+        return NGX_HTTP_NOT_ALLOWED;
+    }
 
     if (r->uri.data[r->uri.len - 1] == '/') {
         return NGX_DECLINED;
     }
 
     log = r->connection->log;
+
+    /*
+     * ngx_http_map_uri_to_path() allocates memory for terminating '\0'
+     * so we do not need to reserve memory for '/' for possible redirect
+     */
+
+    last = ngx_http_map_uri_to_path(r, &path, &root, 0);
+    if (last == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    path.len = last - path.data;
+
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, log, 0,
+            "http filename: \"%s\"", path.data);
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
@@ -290,11 +308,11 @@ ngx_http_image_static_handler(
     of.errors = clcf->open_file_cache_errors;
     of.events = clcf->open_file_cache_events;
 
-    if (ngx_http_set_disable_symlinks(r, clcf, path, &of) != NGX_OK) {
+    if (ngx_http_set_disable_symlinks(r, clcf, &path, &of) != NGX_OK) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    if (ngx_open_cached_file(clcf->open_file_cache, path, &of, r->pool)
+    if (ngx_open_cached_file(clcf->open_file_cache, &path, &of, r->pool)
             != NGX_OK)
     {
         switch (of.err) {
@@ -329,7 +347,7 @@ ngx_http_image_static_handler(
 
         if (rc != NGX_HTTP_NOT_FOUND || clcf->log_not_found) {
             ngx_log_error(level, log, of.err,
-                    "%s \"%s\" failed", of.failed, path->data);
+                    "%s \"%s\" failed", of.failed, path.data);
         }
 
         return rc;
@@ -353,7 +371,7 @@ ngx_http_image_static_handler(
         len = r->uri.len + 1;
 
         if (!clcf->alias && clcf->root_lengths == NULL && r->args.len == 0) {
-            location = path->data + clcf->root.len;
+            location = path.data + clcf->root.len;
 
             *last = '/';
 
@@ -392,7 +410,7 @@ ngx_http_image_static_handler(
 
     if (!of.is_file) {
         ngx_log_error(NGX_LOG_CRIT, log, 0,
-                "\"%s\" is not a regular file", path->data);
+                "\"%s\" is not a regular file", path.data);
 
         return NGX_HTTP_NOT_FOUND;
     }
@@ -451,7 +469,7 @@ ngx_http_image_static_handler(
     b->last_in_chain = 1;
 
     b->file->fd = of.fd;
-    b->file->name = *path;
+    b->file->name = path;
     b->file->log = log;
     b->file->directio = of.is_directio;
 
