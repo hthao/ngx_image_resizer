@@ -15,10 +15,10 @@ typedef struct {
 typedef struct {
     ngx_http_image_resizer_size_t size;
     ngx_int_t quality;
-    ngx_str_t source_type; //allocate
-    ngx_str_t target_type; //data from url
-    ngx_str_t base_path; // allocate
-    ngx_str_t operation; //data from url
+    ngx_str_t source_type; /*allocate*/
+    ngx_str_t target_type; /*data from url*/
+    ngx_str_t base_path; /*allocate*/
+    ngx_str_t operation; /*data from url*/
 }ngx_http_image_resizer_parameters_t;
 
 static ngx_int_t 
@@ -582,7 +582,7 @@ ngx_http_image_resizer_extract_parameter_quality(
 
     u_char *quality = ngx_strlchr(underline, dot, 'q');
     if (quality) {
-        //extract image quality, width, height.
+        /*extract image quality, width, height.*/
         param->quality = ngx_atoi(quality + 1, dot - quality - 1);
     } else {
         return NGX_ERROR;
@@ -687,12 +687,12 @@ ngx_http_image_resizer_extract_parameter_size_quality(
 
     u_char *quality = ngx_strlchr(underline, dot, 'q');
     if (quality) {
-        //extract image quality, width, height.
+        /* extract image quality, width, height */
         param->quality = ngx_atoi(quality + 1, dot - quality - 1);	
         param->size.width = ngx_atoi(underline + 1, operation - underline - 1);
         param->size.height = ngx_atoi(operation + 1, quality - operation - 1);
     } else {
-        //extract image width, height.
+        /* extract image width, height */
         param->quality = 0;
         param->size.width = ngx_atoi(underline + 1, operation - underline - 1);
         param->size.height = ngx_atoi(operation + 1, dot - operation - 1);
@@ -884,7 +884,7 @@ ngx_http_image_resizer_image_resize(
 
     } while(0);
 
-    // Diagnose any error
+    /* Diagnose any error */
     if (MagickPass != status) {
         char *description;
         ExceptionType severity;
