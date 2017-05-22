@@ -116,7 +116,8 @@ ngx_http_image_resizer_handler(
 static ngx_int_t 
 ngx_http_image_static_handler(
         ngx_http_request_t * r,
-        ngx_str_t *path);
+        ngx_str_t *path,
+	    u_char *last);
 
 
 typedef struct {
@@ -252,7 +253,7 @@ ngx_http_image_handler(
     if (0 != access((char*)path.data, F_OK|R_OK)) {
         return ngx_http_image_resizer_handler(r, &path);
     } else {
-        return ngx_http_image_static_handler(r, &path);
+        return ngx_http_image_static_handler(r, &path, last);
     }
 
 }
@@ -261,10 +262,11 @@ ngx_http_image_handler(
     static ngx_int_t
 ngx_http_image_static_handler(
         ngx_http_request_t *r,
-        ngx_str_t *path)
+        ngx_str_t *path,
+		u_char *last)
 {
-    u_char					  *last, *location;
-    size_t					       len;
+    u_char			           *location;
+    size_t				   len;
     ngx_int_t				   rc;
     ngx_uint_t				   level;
     ngx_log_t				  *log;
@@ -603,8 +605,8 @@ ngx_http_image_resizer_extract_parameter_size(
     }
 
     u_char *operation = NULL;
-    u_char ops[3] = {'x', 'y', '*'};
-    for (i = 0; i < 3; i++) {
+    u_char ops[4] = {'x', 'X', 'y', '*'};
+    for (i = 0; i < 4; i++) {
         operation = ngx_strlchr(underline, dot, ops[i]);
         if (operation) {
             param->operation.data = operation;
@@ -653,8 +655,8 @@ ngx_http_image_resizer_extract_parameter_size_quality(
     }
 
     u_char *operation = NULL;
-    u_char ops[3] = {'x', 'y', '*'};
-    for (i = 0; i < 3; i++) {
+    u_char ops[4] = {'x', 'X', 'y', '*'};
+    for (i = 0; i < 4; i++) {
         operation = ngx_strlchr(underline, dot, ops[i]);
         if (operation) {
             param->operation.data = operation;
@@ -764,7 +766,7 @@ ngx_http_image_resizer_adapt_size(
             adapt_size->height = required_height;
             adapt_size->width = (double)src_width *((double)required_height /(double)src_height);
         }
-    } else if(*operation == '*') {
+    } else if(*operation == '*' || *operation == 'X') {
         adapt_size->height = required_height;
         adapt_size->width = (double)src_width*((double)required_height/(double)src_height);
     } else if (*operation == 'y') {
@@ -832,7 +834,8 @@ ngx_http_image_resizer_image_resize(
                 status = MagickExtentImage(mw, width, height, x, y);
                 if (MagickPass != status) break;
 
-            }  else if (*(param->operation.data) == '*') {
+            }  else if (*(param->operation.data) == '*' ||
+                    *(param->operation.data) == 'X' ) {
                 status = MagickScaleImage(mw, resize_size.width, resize_size.height);
                 if (MagickPass != status) break;
 
@@ -920,7 +923,7 @@ ngx_http_image_resizer_url_validate(
 
     do {
 
-        const char *s = ".*_[0-9]{1,4}[x|y|*][0-9]{1,4}\\.";
+        const char *s = ".*_[0-9]{1,4}[x|y|*|X][0-9]{1,4}\\.";
         len = ngx_strlen(s);
         ngx_memset(regex_pattern.data, '\0', 256);
         ngx_memcpy(regex_pattern.data, s, len);
@@ -935,7 +938,7 @@ ngx_http_image_resizer_url_validate(
             break;
         }
 
-        const char *sq = ".*_[0-9]{1,4}[x|y|*][0-9]{1,4}q[0-9]{1,2}\\.";
+        const char *sq = ".*_[0-9]{1,4}[x|y|*|X][0-9]{1,4}q[0-9]{1,2}\\.";
         len = ngx_strlen(sq);
         ngx_memset(regex_pattern.data, '\0', 256);
         ngx_memcpy(regex_pattern.data, sq, len);
