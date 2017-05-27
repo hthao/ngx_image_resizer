@@ -5,7 +5,7 @@
 ```
     location xxx {
         use_image_resizer;
-        image_resizer_types (jpg|jpeg|webp|png|bmp|tiff); /* supported image types*/
+        image_resizer_types (jpg|jpeg|webp|png|bmp|tiff); /* supported image types */
         image_resizer_max_width 1000; /* max resize width */
         image_resizer_max_height 1000; /* max resize height */
     }
@@ -41,6 +41,6 @@ http://www.example.com/data/example_200x300q85.webp
      - the value range of `width` and `height` is specified by the configuration item `image_resizer_max_width`, `image_resizer_max_height`.
 
      - `resize` operation
-        - `x`, keep original width/height ratio, fill with the background with white color.
+        - `x`, keep original width/height ratio, fill the background with white color.
         - `*`, keep original width/height ratio, resize the image `height` to be specified value, and crop the extra pixels or fill the background with white color.
-        - `y`, scale the image to be the specified `width,height` size.
+        - `y`, scale the image to be the specified `width, height` size.
