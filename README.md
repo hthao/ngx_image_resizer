@@ -5,7 +5,7 @@
 ```
     location xxx {
         use_image_resizer;
-        image_resizer_types (jpg|jpeg|webp|png|bmp|tiff); /* supported image formats */
+        image_resizer_types (jpg|jpeg|webp|png|bmp|tiff); /* supported image types*/
         image_resizer_max_width 1000; /* max resize width */
         image_resizer_max_height 1000; /* max resize height */
     }
